@@ -111,52 +111,52 @@
 
 ### 1. Facade
 
-Где: Application/Facades/
-AccountsFacade, CategoriesFacade, OperationsFacade, AnalyticsFacade.
-Когда: каждый сценарий из хэндлеров команд вместо прямой работы с несколькими репозиториями и сервисами обращается к фасаду.
-Зачем: фасады прячут как исполняется операция (какие репозитории дернуть, валидацию и т.д.), давая простой API для приложения. Это снижает связность между хэндлерами, инфраструктурой, валидаторами.
+- Где: Application/Facades/
+- AccountsFacade, CategoriesFacade, OperationsFacade, AnalyticsFacade.
+- Когда: каждый сценарий из хэндлеров команд вместо прямой работы с несколькими репозиториями и сервисами обращается к фасаду.
+- Зачем: фасады прячут как исполняется операция (какие репозитории дернуть, валидацию и т.д.), давая простой API для приложения. Это снижает связность между хэндлерами, инфраструктурой, валидаторами.
 
 ### 2. Command
 
-Где: Application/Abstractions/ICommand<T>, ICommandHandler<TCommand,TResult>, конкретные команды/хэндлеры в Application/Commands/, шина CommandBus.
-Когда: любой пользовательский сценарий (CRUD, экспорт, аналитика) оформлен отдельной командой.
-Зачем: изоляция сценариев, единый протокол исполнения, возможность декорировать исполнение, а значит гибкая и удобная расширяемость.
+- Где: Application/Abstractions/ICommand<T>, ICommandHandler<TCommand,TResult>, конкретные команды/хэндлеры в Application/Commands/, шина CommandBus.
+- Когда: любой пользовательский сценарий (CRUD, экспорт, аналитика) оформлен отдельной командой.
+- Зачем: изоляция сценариев, единый протокол исполнения, возможность декорировать исполнение, а значит гибкая и удобная расширяемость.
 
 ### 3. Decorator
 
-Где: Application/Commands/Decorators/TimingHandlerDecorator.cs, регистрация в CompositionRoot через Scutor.Decorate(...); замер времени - ITimingSink/ConsoleTimingSink.
-Когда: при каждом вызове ICommandBus.Send резолвится хэндлер, вокруг него оборачивается декоратор, который измеряет время выполнения команды.
-Зачем: добавляем функциональность без изменения кода хэндлеров. Легко подключить и другие декораторы, опять же обеспечивая гибкую расширяемость.
+- Где: Application/Commands/Decorators/TimingHandlerDecorator.cs, регистрация в CompositionRoot через Scutor.Decorate(...); замер времени - ITimingSink/ConsoleTimingSink.
+- Когда: при каждом вызове ICommandBus.Send резолвится хэндлер, вокруг него оборачивается декоратор, который измеряет время выполнения команды.
+- Зачем: добавляем функциональность без изменения кода хэндлеров. Легко подключить и другие декораторы, опять же обеспечивая гибкую расширяемость.
 
 ### 4. Template Method
 
-Где: Application/Importing/SnapshotImporterBase + реализации JsonSnapshotImporter, CsvSnapshotImporter, YamlSnapshotImporter.
-Когда: при импорте из файла: общий алгоритм (проверка расширения -> чтение -> парсинг) определён в базовом классе, конкретика парсинга - в абстрактном ParseCore.
-Зачем: устраняет дублирование между форматами, позволяет легко добавить новый формат, реализовав только отличающуюся.
+- Где: Application/Importing/SnapshotImporterBase + реализации JsonSnapshotImporter, CsvSnapshotImporter, YamlSnapshotImporter.
+- Когда: при импорте из файла: общий алгоритм (проверка расширения -> чтение -> парсинг) определён в базовом классе, конкретика парсинга - в абстрактном ParseCore.
+- Зачем: устраняет дублирование между форматами, позволяет легко добавить новый формат, реализовав только отличающуюся.
 
 ### 5. Visitor
 
-Где: Domain/Interfaces/IVisitor, IAcceptVisitor; реализации посетителей: JsonExportVisitor, CsvExportVisitor, YamlExportVisitor; доменные сущности (BankAccount, Category, Operation) реализуют IAcceptVisitor.Accept.
-Когда: при экспорте данных стратегии инициируют обход доменных объектов через визитора, который собирает корректное представление данных для целевого формата.
-Зачем: отделяет структуру домена от экспорта, не засоряя доменные классы знанием о форматах экспорта. Удобно расширять программу новыми операциями, не трогая домен.
+- Где: Domain/Interfaces/IVisitor, IAcceptVisitor; реализации посетителей: JsonExportVisitor, CsvExportVisitor, YamlExportVisitor; доменные сущности (BankAccount, Category, Operation) реализуют IAcceptVisitor.Accept.
+- Когда: при экспорте данных стратегии инициируют обход доменных объектов через визитора, который собирает корректное представление данных для целевого формата.
+- Зачем: отделяет структуру домена от экспорта, не засоряя доменные классы знанием о форматах экспорта. Удобно расширять программу новыми операциями, не трогая домен.
 
 ### 6. Factory
 
-Где: Application/Factories/ (BankAccountFactory, CategoryFactory, OperationFactory, + DomainFactoryResolver).
-Когда: при создании доменных сущностей из DTO/команд - всегда через фабрики, которые используют валидаторы DTO.
-Зачем: единая точка создания объектов + валидация параметров -> отсутствие дублирования проверок, контролируемое появление объектов в валидном состоянии.
+- Где: Application/Factories/ (BankAccountFactory, CategoryFactory, OperationFactory, + DomainFactoryResolver).
+- Когда: при создании доменных сущностей из DTO/команд - всегда через фабрики, которые используют валидаторы DTO.
+- Зачем: единая точка создания объектов + валидация параметров -> отсутствие дублирования проверок, контролируемое появление объектов в валидном состоянии.
 
 ### 7. Strategy
 
-Где: Application/Exporting/Strategies/ (IExportStrategy, JsonExportStrategy, YamlExportStrategy, CsvExportStrategy) и ExportService, выбирающий стратегию по расширению файла.
-Когда: при экспорте ExportService.Export(...) смотрит расширение и подбирает нужную стратегию.
-Зачем: взаимозаменяемые алгоритмы экспорта; легко добавить новый формат - просто зарегистрировать новую стратегию.
+- Где: Application/Exporting/Strategies/ (IExportStrategy, JsonExportStrategy, YamlExportStrategy, CsvExportStrategy) и ExportService, выбирающий стратегию по расширению файла.
+- Когда: при экспорте ExportService.Export(...) смотрит расширение и подбирает нужную стратегию.
+- Зачем: взаимозаменяемые алгоритмы экспорта; легко добавить новый формат - просто зарегистрировать новую стратегию.
 
 ### 8. Observer
 
-Где: Application/Events/EventBus, события OperationCreated/Updated/Deleted, обработчик RecalculateOnOperationEvents, сервис IRecalculator/Recalculator.
-Когда: после создания/изменения/удаления операции хэндлер публикует событие в EventBus, а подписчик (RecalculateOnOperationEvents) реагирует пересчётом балансов (Recalculator.RecalculateAll).
-Зачем: размыкает связность - CRUD-сценарии не знают, кто захочет на них среагировать. Можно добавлять новые обработчики без изменений в исходных сценариях.
+- Где: Application/Events/EventBus, события OperationCreated/Updated/Deleted, обработчик RecalculateOnOperationEvents, сервис IRecalculator/Recalculator.
+- Когда: после создания/изменения/удаления операции хэндлер публикует событие в EventBus, а подписчик (RecalculateOnOperationEvents) реагирует пересчётом балансов (Recalculator.RecalculateAll).
+- Зачем: размыкает связность - CRUD-сценарии не знают, кто захочет на них среагировать. Можно добавлять новые обработчики без изменений в исходных сценариях.
 
 ## 4. Соблюдение принципов SOLID
 
