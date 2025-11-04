@@ -8,11 +8,10 @@ public static class Program
 {
     public static void Main(string[] args)
     {
-        Console.InputEncoding = System.Text.Encoding.UTF8;
-        Console.OutputEncoding = System.Text.Encoding.UTF8;
-        
         var services = CompositionRoot.BuildServices();
+        
         var menu = services.GetRequiredService<MainMenu>();
+        ConsoleEncodingSetup.Set();
         menu.Run();
     }
 }
